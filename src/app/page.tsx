@@ -478,8 +478,8 @@ export default function Home() {
                 <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask for a plan, a draft, or a decision…"
-                  className="min-h-[48px] resize-none"
+                  placeholder="Ask for a plan…"
+                  className="h-12 min-h-12 resize-none placeholder:whitespace-nowrap"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                       e.preventDefault();

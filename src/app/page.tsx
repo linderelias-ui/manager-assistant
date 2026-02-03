@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,20 @@ import { useTheme } from "next-themes";
 type Msg = {
   role: "user" | "assistant";
   content: string;
+};
+
+const SWIFTY_SPRING = {
+  type: "spring" as const,
+  stiffness: 520,
+  damping: 38,
+  mass: 0.9,
+};
+
+const SWIFTY_SPRING_SOFT = {
+  type: "spring" as const,
+  stiffness: 380,
+  damping: 34,
+  mass: 1,
 };
 
 function TypingDots() {
@@ -213,7 +227,11 @@ export default function Home() {
   const [scrollToModelOnOpen, setScrollToModelOnOpen] = React.useState(false);
   const settingsModelRef = React.useRef<HTMLDivElement | null>(null);
   const endRef = React.useRef<HTMLDivElement | null>(null);
+  const reduceMotion = useReducedMotion();
   const { theme, setTheme } = useTheme();
+
+  const spring = reduceMotion ? { duration: 0.01 } : SWIFTY_SPRING;
+  const springSoft = reduceMotion ? { duration: 0.01 } : SWIFTY_SPRING_SOFT;
 
   const needsKey = loaded && !apiKey;
 
@@ -402,7 +420,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.18 }}
+              transition={springSoft}
               className="mt-8"
             >
               <Card className="p-4">
@@ -466,10 +484,18 @@ export default function Home() {
                         key={c.label}
                         variant="secondary"
                         size="sm"
-                        onClick={() => send(c.prompt)}
-                        disabled={sending}
+                        asChild
                       >
-                        {c.label}
+                        <motion.button
+                          type="button"
+                          onClick={() => send(c.prompt)}
+                          disabled={sending}
+                          whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                          whileHover={reduceMotion ? undefined : { scale: 1.01 }}
+                          transition={springSoft}
+                        >
+                          {c.label}
+                        </motion.button>
                       </Button>
                     ))}
                   </div>
@@ -479,9 +505,10 @@ export default function Home() {
                   {messages.map((m, idx) => (
                     <motion.div
                       key={idx}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.18 }}
+                      layout
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={spring}
                       className={
                         m.role === "user"
                           ? "flex justify-end"
@@ -505,9 +532,9 @@ export default function Home() {
                   {sending ? (
                     <motion.div
                       key="typing"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.18 }}
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={spring}
                       className="flex justify-start"
                     >
                       <Card className="max-w-[90%]">
@@ -549,12 +576,16 @@ export default function Home() {
                     }
                   }}
                 />
-                <Button
-                  onClick={() => send(input)}
-                  disabled={sending}
-                  className="h-12"
-                >
-                  {sending ? "Sending…" : "Send"}
+                <Button disabled={sending} className="h-12" asChild>
+                  <motion.button
+                    type="button"
+                    onClick={() => send(input)}
+                    disabled={sending}
+                    whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                    transition={springSoft}
+                  >
+                    {sending ? "Sending…" : "Send"}
+                  </motion.button>
                 </Button>
               </div>
 

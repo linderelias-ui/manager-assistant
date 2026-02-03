@@ -549,7 +549,11 @@ export default function Home() {
                     }
                   }}
                 />
-                <Button onClick={() => send(input)} disabled={sending}>
+                <Button
+                  onClick={() => send(input)}
+                  disabled={sending}
+                  className="h-12"
+                >
                   {sending ? "Sending…" : "Send"}
                 </Button>
               </div>

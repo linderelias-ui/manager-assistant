@@ -23,6 +23,26 @@ type Msg = {
   content: string;
 };
 
+function TypingDots() {
+  return (
+    <div className="flex items-center gap-1 px-4 py-3">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="h-1.5 w-1.5 rounded-full bg-muted-foreground"
+          animate={{ opacity: [0.25, 1, 0.25], y: [0, -2, 0] }}
+          transition={{
+            duration: 0.9,
+            repeat: Infinity,
+            delay: i * 0.12,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 const STORAGE_KEY = "openrouter_key";
 
 const chipPrompts: { label: string; prompt: string }[] = [
@@ -287,6 +307,7 @@ export default function Home() {
                         variant="secondary"
                         size="sm"
                         onClick={() => send(c.prompt)}
+                        disabled={sending}
                       >
                         {c.label}
                       </Button>
@@ -294,31 +315,47 @@ export default function Home() {
                   </div>
                 </div>
               ) : (
-                messages.map((m, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.18 }}
-                    className={
-                      m.role === "user"
-                        ? "flex justify-end"
-                        : "flex justify-start"
-                    }
-                  >
-                    <Card
+                <>
+                  {messages.map((m, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.18 }}
                       className={
                         m.role === "user"
-                          ? "max-w-[90%] bg-primary text-primary-foreground"
-                          : "max-w-[90%]"
+                          ? "flex justify-end"
+                          : "flex justify-start"
                       }
                     >
-                      <div className="whitespace-pre-wrap px-4 py-3 text-sm leading-relaxed">
-                        {m.content}
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))
+                      <Card
+                        className={
+                          m.role === "user"
+                            ? "max-w-[90%] bg-primary text-primary-foreground"
+                            : "max-w-[90%]"
+                        }
+                      >
+                        <div className="whitespace-pre-wrap px-4 py-3 text-sm leading-relaxed">
+                          {m.content}
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))}
+
+                  {sending ? (
+                    <motion.div
+                      key="typing"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.18 }}
+                      className="flex justify-start"
+                    >
+                      <Card className="max-w-[90%]">
+                        <TypingDots />
+                      </Card>
+                    </motion.div>
+                  ) : null}
+                </>
               )}
             </div>
 

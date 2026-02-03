@@ -178,9 +178,28 @@ export default function Home() {
   const [input, setInput] = React.useState("");
   const [messages, setMessages] = React.useState<Msg[]>([]);
   const [sending, setSending] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [scrollToModelOnOpen, setScrollToModelOnOpen] = React.useState(false);
+  const settingsModelRef = React.useRef<HTMLDivElement | null>(null);
+  const endRef = React.useRef<HTMLDivElement | null>(null);
   const { theme, setTheme } = useTheme();
 
   const needsKey = loaded && !apiKey;
+
+  React.useEffect(() => {
+    if (!settingsOpen || !scrollToModelOnOpen) return;
+    // Let the Sheet finish its opening animation/layout.
+    const t = window.setTimeout(() => {
+      settingsModelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setScrollToModelOnOpen(false);
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [settingsOpen, scrollToModelOnOpen]);
+
+  React.useEffect(() => {
+    // Keep latest messages visible (esp. on mobile where the keyboard + sticky composer can obscure content).
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages.length, sending]);
 
   async function send(userText: string) {
     const text = userText.trim();
@@ -236,7 +255,7 @@ export default function Home() {
             Manager Assistant
           </div>
 
-          <Sheet>
+          <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="sm">
                 ⋯
@@ -266,7 +285,7 @@ export default function Home() {
 
                 <Separator />
 
-                <div className="space-y-3">
+                <div className="space-y-3" ref={settingsModelRef}>
                   <div className="text-xs font-medium text-muted-foreground">
                     OpenRouter
                   </div>
@@ -400,12 +419,15 @@ export default function Home() {
 
         {/* Chat */}
         {!needsKey && (
-          <div className="flex flex-1 flex-col">
-            <div className="flex-1 space-y-3 py-4">
+          <div className="flex flex-1 min-h-0 flex-col">
+            <div className="flex-1 space-y-3 overflow-y-auto py-4 pb-28">
               {messages.length === 0 ? (
-                <div className="mt-10 space-y-4">
+                <div className="mt-10 space-y-3">
                   <div className="text-lg font-semibold tracking-tight">
                     What are you trying to accomplish?
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Pick a shortcut or ask in your own words.
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {chipPrompts.map((c) => (
@@ -462,15 +484,24 @@ export default function Home() {
                       </Card>
                     </motion.div>
                   ) : null}
+
+                  <div ref={endRef} />
                 </>
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-background/80 pb-4 pt-2 backdrop-blur">
+            <div className="sticky bottom-0 bg-background/80 pt-2 backdrop-blur pb-[calc(1rem+env(safe-area-inset-bottom))]">
               <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                <div>
+                <button
+                  type="button"
+                  className="underline-offset-4 hover:underline"
+                  onClick={() => {
+                    setScrollToModelOnOpen(true);
+                    setSettingsOpen(true);
+                  }}
+                >
                   Model: {MODEL_OPTIONS.find((m) => m.id === model)?.name ?? model}
-                </div>
+                </button>
                 <div className="hidden sm:block">Ctrl/⌘ + Enter to send</div>
               </div>
 
@@ -488,11 +519,12 @@ export default function Home() {
                   }}
                 />
                 <Button onClick={() => send(input)} disabled={sending}>
-                  {sending ? "…" : "Send"}
+                  {sending ? "Sending…" : "Send"}
                 </Button>
               </div>
-              <div className="mt-2 text-[11px] text-muted-foreground">
-                Tip: Ctrl/⌘ + Enter to send. Change model in Settings.
+
+              <div className="mt-2 hidden text-[11px] text-muted-foreground sm:block">
+                Tip: Ctrl/⌘ + Enter to send.
               </div>
             </div>
           </div>

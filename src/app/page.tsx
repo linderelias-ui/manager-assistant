@@ -221,6 +221,7 @@ export default function Home() {
   const { key: apiKey, loaded, save, clear } = useStoredKey();
   const { model, save: saveModel } = useStoredModel();
   const [input, setInput] = React.useState("");
+  const composerRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [messages, setMessages] = React.useState<Msg[]>([]);
   const [sending, setSending] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
@@ -250,6 +251,17 @@ export default function Home() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length, sending]);
 
+  React.useEffect(() => {
+    const el = composerRef.current;
+    if (!el) return;
+
+    // Auto-grow textarea up to a max height.
+    el.style.height = "auto";
+    const maxPx = 160; // ~6-7 lines on mobile
+    el.style.height = `${Math.min(el.scrollHeight, maxPx)}px`;
+    el.style.overflowY = el.scrollHeight > maxPx ? "auto" : "hidden";
+  }, [input]);
+
   async function send(userText: string) {
     const text = userText.trim();
     if (!text) return;
@@ -261,6 +273,11 @@ export default function Home() {
     const nextMessages: Msg[] = [...messages, { role: "user", content: text }];
     setMessages(nextMessages);
     setInput("");
+    // Reset composer height immediately after clearing.
+    if (composerRef.current) {
+      composerRef.current.style.height = "auto";
+      composerRef.current.style.overflowY = "hidden";
+    }
     setSending(true);
 
     try {
@@ -560,17 +577,19 @@ export default function Home() {
                 >
                   Model: {MODEL_OPTIONS.find((m) => m.id === model)?.name ?? model}
                 </button>
-                <div className="hidden sm:block">Ctrl/⌘ + Enter to send</div>
+                <div className="hidden sm:block">Enter to send · Shift+Enter for a new line</div>
               </div>
 
               <div className="flex gap-1.5">
                 <Textarea
+                  ref={composerRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask for a plan…"
-                  className="h-12 min-h-12 resize-none placeholder:whitespace-nowrap"
+                  rows={1}
+                  className="min-h-12 resize-none leading-snug placeholder:whitespace-nowrap"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                    if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       send(input);
                     }
@@ -590,7 +609,7 @@ export default function Home() {
               </div>
 
               <div className="mt-2 hidden text-[11px] text-muted-foreground sm:block">
-                Tip: Ctrl/⌘ + Enter to send.
+                Tip: Enter to send · Shift+Enter for a new line.
               </div>
             </div>
           </div>

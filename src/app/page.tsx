@@ -16,6 +16,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTheme } from "next-themes";
 
 type Msg = {
@@ -44,6 +51,50 @@ function TypingDots() {
 }
 
 const STORAGE_KEY = "openrouter_key";
+const STORAGE_MODEL_KEY = "openrouter_model";
+
+type ModelOption = {
+  id: string;
+  name: string;
+  blurb: string;
+  free?: boolean;
+};
+
+// Curated, sane defaults for a business-assistant MVP.
+// Note: OpenRouter supports ":free" suffix on some models, and also provides the openrouter/free router.
+const MODEL_OPTIONS: ModelOption[] = [
+  {
+    id: "openai/gpt-4o-mini",
+    name: "GPT-4o mini",
+    blurb: "Fast + cheap. Great general-purpose assistant for planning, drafts, and quick analysis.",
+  },
+  {
+    id: "anthropic/claude-3.5-sonnet",
+    name: "Claude 3.5 Sonnet",
+    blurb: "Excellent writing quality and reasoning. Great for memos, strategy, and nuanced business comms.",
+  },
+  {
+    id: "google/gemini-1.5-flash",
+    name: "Gemini 1.5 Flash",
+    blurb: "Very fast, strong summaries and Q&A. Good for rapid iterations and long-context tasks.",
+  },
+  {
+    id: "deepseek/deepseek-r1",
+    name: "DeepSeek R1",
+    blurb: "Strong reasoning/value. Great for problem decomposition and structured thinking.",
+  },
+  {
+    id: "meta-llama/llama-3.1-70b-instruct",
+    name: "Llama 3.1 70B Instruct",
+    blurb: "High-quality open model. Solid for general business help when you want a non-proprietary option.",
+  },
+  {
+    id: "openrouter/free",
+    name: "OpenRouter Free Router",
+    blurb: "Routes to currently-available free models. Useful for experimenting at $0 cost.",
+    free: true,
+  },
+];
 
 const chipPrompts: { label: string; prompt: string }[] = [
   {
@@ -101,8 +152,29 @@ function useStoredKey() {
   return { key, loaded, save, clear };
 }
 
+function useStoredModel() {
+  const [model, setModel] = React.useState<string>(MODEL_OPTIONS[0]?.id ?? "");
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_MODEL_KEY);
+      if (stored) setModel(stored);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const save = (next: string) => {
+    localStorage.setItem(STORAGE_MODEL_KEY, next);
+    setModel(next);
+  };
+
+  return { model, save };
+}
+
 export default function Home() {
   const { key: apiKey, loaded, save, clear } = useStoredKey();
+  const { model, save: saveModel } = useStoredModel();
   const [input, setInput] = React.useState("");
   const [messages, setMessages] = React.useState<Msg[]>([]);
   const [sending, setSending] = React.useState(false);
@@ -129,7 +201,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           apiKey,
-          model: "openai/gpt-4o-mini",
+          model,
           messages: [
             {
               role: "system",
@@ -194,10 +266,11 @@ export default function Home() {
 
                 <Separator />
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="text-xs font-medium text-muted-foreground">
                     OpenRouter
                   </div>
+
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
                       {apiKey
@@ -216,8 +289,42 @@ export default function Home() {
                       Clear
                     </Button>
                   </div>
+
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Model
+                    </div>
+                    <Select
+                      value={model}
+                      onValueChange={(v) => {
+                        saveModel(v);
+                        const picked = MODEL_OPTIONS.find((m) => m.id === v);
+                        toast.message(
+                          picked ? `Model: ${picked.name}` : "Model updated",
+                        );
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MODEL_OPTIONS.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.name}
+                            {m.free ? " (free)" : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <div className="text-xs text-muted-foreground">
+                      {MODEL_OPTIONS.find((m) => m.id === model)?.blurb ??
+                        "Choose a model to use for replies."}
+                    </div>
+                  </div>
+
                   <div className="text-xs text-muted-foreground">
-                    Stored only on this device.
+                    Your key is stored only on this device.
                   </div>
                 </div>
 
@@ -360,6 +467,13 @@ export default function Home() {
             </div>
 
             <div className="sticky bottom-0 bg-background/80 pb-4 pt-2 backdrop-blur">
+              <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                <div>
+                  Model: {MODEL_OPTIONS.find((m) => m.id === model)?.name ?? model}
+                </div>
+                <div className="hidden sm:block">Ctrl/⌘ + Enter to send</div>
+              </div>
+
               <div className="flex gap-2">
                 <Textarea
                   value={input}
@@ -378,7 +492,7 @@ export default function Home() {
                 </Button>
               </div>
               <div className="mt-2 text-[11px] text-muted-foreground">
-                Tip: Ctrl/⌘ + Enter to send.
+                Tip: Ctrl/⌘ + Enter to send. Change model in Settings.
               </div>
             </div>
           </div>

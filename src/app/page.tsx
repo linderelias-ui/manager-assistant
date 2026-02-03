@@ -451,7 +451,7 @@ export default function Home() {
         {/* Chat */}
         {!needsKey && (
           <div className="flex flex-1 min-h-0 flex-col">
-            <div className="flex-1 space-y-3 overflow-y-auto py-4 pb-28">
+            <div className="flex-1 space-y-3 overflow-y-auto py-4 pb-24">
               {messages.length === 0 ? (
                 <div className="mt-10 space-y-3">
                   <div className="text-lg font-semibold tracking-tight">
@@ -521,7 +521,7 @@ export default function Home() {
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-background/80 pt-2 backdrop-blur pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="sticky bottom-0 bg-background/80 pt-2 backdrop-blur pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
               <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
                 <button
                   type="button"
@@ -536,7 +536,7 @@ export default function Home() {
                 <div className="hidden sm:block">Ctrl/⌘ + Enter to send</div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

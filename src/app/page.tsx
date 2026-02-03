@@ -63,31 +63,62 @@ type ModelOption = {
 // Curated, sane defaults for a business-assistant MVP.
 // Note: OpenRouter supports ":free" suffix on some models, and also provides the openrouter/free router.
 const MODEL_OPTIONS: ModelOption[] = [
+  // --- OpenAI ---
+  {
+    id: "openai/gpt-5.2",
+    name: "GPT-5.2",
+    blurb: "Frontier-grade. Strong long-context + agentic reasoning; best when you want high quality over cost/speed.",
+  },
+  {
+    id: "openai/gpt-4o",
+    name: "GPT-4o",
+    blurb: "High quality and versatile. Great for manager-style drafting, planning, and analysis.",
+  },
   {
     id: "openai/gpt-4o-mini",
     name: "GPT-4o mini",
     blurb: "Fast + cheap. Great general-purpose assistant for planning, drafts, and quick analysis.",
   },
+
+  // --- Anthropic ---
   {
     id: "anthropic/claude-3.5-sonnet",
     name: "Claude 3.5 Sonnet",
     blurb: "Excellent writing quality and reasoning. Great for memos, strategy, and nuanced business comms.",
   },
+
+  // --- Google Gemini ---
+  {
+    id: "google/gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    blurb: "Google’s flagship reasoning model. Strong for deep analysis, coding, and long-context tasks.",
+  },
+  {
+    id: "google/gemini-2.0-flash-001",
+    name: "Gemini 2.0 Flash",
+    blurb: "Very fast with strong quality. Good default Gemini for quick iterations and summaries.",
+  },
   {
     id: "google/gemini-1.5-flash",
     name: "Gemini 1.5 Flash",
-    blurb: "Very fast, strong summaries and Q&A. Good for rapid iterations and long-context tasks.",
+    blurb: "Fast and reliable. Good for rapid iterations and long-context tasks.",
   },
+
+  // --- DeepSeek ---
   {
     id: "deepseek/deepseek-r1",
     name: "DeepSeek R1",
     blurb: "Strong reasoning/value. Great for problem decomposition and structured thinking.",
   },
+
+  // --- Open models ---
   {
     id: "meta-llama/llama-3.1-70b-instruct",
     name: "Llama 3.1 70B Instruct",
     blurb: "High-quality open model. Solid for general business help when you want a non-proprietary option.",
   },
+
+  // --- Free router ---
   {
     id: "openrouter/free",
     name: "OpenRouter Free Router",

@@ -469,7 +469,7 @@ export default function Home() {
         {/* Chat */}
         {!needsKey && (
           <div className="flex flex-1 min-h-0 flex-col">
-            <div className="flex-1 space-y-3 overflow-y-auto py-4 pb-24">
+            <div className="flex-1 space-y-2 overflow-y-auto py-4 pb-24">
               {messages.length === 0 ? (
                 <div className="mt-10 space-y-3">
                   <div className="text-lg font-semibold tracking-tight">
@@ -522,7 +522,7 @@ export default function Home() {
                             : "max-w-[90%]"
                         }
                       >
-                        <div className="whitespace-pre-wrap px-4 py-3 text-sm leading-relaxed">
+                        <div className="whitespace-pre-wrap px-3 py-2.5 text-sm leading-snug">
                           {m.content}
                         </div>
                       </Card>
